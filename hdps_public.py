@@ -7,31 +7,29 @@ Created on Fri Apr 26 19:28:35 2024
 
 import pickle
 import streamlit as st
+import pyodbc
 from streamlit_option_menu import option_menu
 
+# Establish connection to MSSQL Server
+db_server = st.secrets["db_server"]
+db_database = st.secrets["db_database"]
+db_username = st.secrets["db_username"]
+db_password = st.secrets["db_password"]
+
+conn = pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={db_server};DATABASE={db_database};UID={db_username};PWD={db_password}')
 
 # loading the saved models
-
 heart_disease_model = pickle.load(open('heart_disease_model.sav', 'rb'))
-
 
 # sidebar for navigation
 with st.sidebar:
-    
     selected = option_menu('Multiple Disease Prediction System',
-                          
-                          [
-                           'Heart Disease Prediction'
-                           ],
-                          icons=['heart'],
-                          default_index=0)
-    
-    
-
+                           ['Heart Disease Prediction'],
+                           icons=['heart'],
+                           default_index=0)
 
 # Heart Disease Prediction Page
-if (selected == 'Heart Disease Prediction'):
-    
+if selected == 'Heart Disease Prediction':
     # page title
     st.title('Heart Disease Prediction using ML')
     
@@ -76,24 +74,21 @@ if (selected == 'Heart Disease Prediction'):
     with col1:
         thal = st.text_input('thal: 0 = normal; 1 = fixed defect; 2 = reversable defect')
         
-        
-     
-     
     # code for Prediction
     heart_diagnosis = ''
     
     # creating a button for Prediction
-    
     if st.button('Heart Disease Test Result'):
-        heart_prediction = heart_disease_model.predict([[age, sex, cp, trestbps, chol, fbs, restecg,thalach,exang,oldpeak,slope,ca,thal]])                          
+        # Execute SQL query to get prediction
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM YourTable WHERE Age = ? AND Sex = ? AND ...", (age, sex, ...))
+        result = cursor.fetchone()
+        cursor.close()
         
-        if (heart_prediction[0] == 1):
-          heart_diagnosis = 'The person is having heart disease'
+        # Process prediction
+        if result[0] == 1:  # Assuming the prediction is in the first column
+            heart_diagnosis = 'The person is having heart disease'
         else:
-          heart_diagnosis = 'The person does not have any heart disease'
+            heart_diagnosis = 'The person does not have any heart disease'
         
     st.success(heart_diagnosis)
-        
-    
-    
-
