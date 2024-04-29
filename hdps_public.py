@@ -11,12 +11,11 @@ import pyodbc
 from streamlit_option_menu import option_menu
 
 # Establish connection to MSSQL Server
-db_server = st.secrets["db_server"]
-db_database = st.secrets["db_database"]
-db_username = st.secrets["db_username"]
-db_password = st.secrets["db_password"]
+db_server = st.secrets["DB_Server"]
+db_database = st.secrets["DB_Database"]
 
-conn = pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={db_server};DATABASE={db_database};UID={db_username};PWD={db_password}')
+
+conn = pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={DB_Server};DATABASE={DB_Database}')
 
 # loading the saved models
 heart_disease_model = pickle.load(open('heart_disease_model.sav', 'rb'))
