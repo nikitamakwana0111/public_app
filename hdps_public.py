@@ -10,14 +10,38 @@ import streamlit as st
 import pyodbc
 from streamlit_option_menu import option_menu
 
-# Establish connection to MSSQL Server
-db_server = st.secrets["server"]
-db_database = st.secrets["database"]
-db_username= st.secrets["username"]
-db_password= st.secrets["passwords"]
 
-conn = pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={db_server};DATABASE={db_database};UID={db_username};PWD={db_password}')
+# Initialize connection.
+# Uses st.cache_resource to only run once.
+@st.cache_resource
+def init_connection():
+    return pyodbc.connect(
+        "DRIVER={ODBC Driver 17 for SQL Server};SERVER="
+        + st.secrets["server"]
+        + ";DATABASE="
+        + st.secrets["database"]
+        + ";UID="
+        + st.secrets["username"]
+        + ";PWD="
+        + st.secrets["password"]
+    )
 
+conn = init_connection()
+
+# Perform query.
+# Uses st.cache_data to only rerun when the query changes or after 10 min.
+@st.cache_data(ttl=600)
+def run_query(query):
+    with conn.cursor() as cur:
+        cur.execute(query)
+        return cur.fetchall()
+
+rows = run_query("SELECT * from Heart;")
+
+# Print results.
+for row in rows:
+    st.write(f"{row[0]} has a :{row[1]}:")
+    
 # loading the saved models
 heart_disease_model = pickle.load(open('heart_disease_model.sav', 'rb'))
 
