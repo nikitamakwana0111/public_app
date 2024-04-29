@@ -12,6 +12,7 @@ import numpy as np
 from streamlit_option_menu import option_menu
 
 # Initialize connection function
+@st.cache_resource
 def init_connection():
     return pyodbc.connect(
         "DRIVER={ODBC Driver 17 for SQL Server};SERVER="
@@ -22,8 +23,9 @@ def init_connection():
         + st.secrets["username"]
         + ";PWD="
         + st.secrets["password"]
-        + ";Connect Timeout=30"
     )
+
+conn = init_connection()
 
 # Function to get model prediction
 def predict_heart_disease(features):
@@ -34,8 +36,6 @@ def predict_heart_disease(features):
     prediction = heart_disease_model.predict(features)
     return prediction
 
-# Initialize connection
-conn = init_connection()
 
 # Sidebar for navigation
 with st.sidebar:
