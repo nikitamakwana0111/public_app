@@ -8,8 +8,21 @@ Created on Fri Apr 26 19:28:35 2024
 import pickle
 import streamlit as st
 import pyodbc
+import numpy as np
 from streamlit_option_menu import option_menu
 
+# Initialize connection function
+def init_connection():
+    return pyodbc.connect(
+        "DRIVER={ODBC Driver 17 for SQL Server};SERVER="
+        + st.secrets["server"]
+        + ";DATABASE="
+        + st.secrets["database"]
+        + ";UID="
+        + st.secrets["username"]
+        + ";PWD="
+        + st.secrets["password"]
+    )
 
 # Function to get model prediction
 def predict_heart_disease(features):
@@ -20,30 +33,10 @@ def predict_heart_disease(features):
     prediction = heart_disease_model.predict(features)
     return prediction
 
-# Sidebar and input fields...
+# Initialize connection
+conn = init_connection()
 
-# Predict heart disease
-if st.button('Heart Disease Test Result'):
-    # Get user inputs
-    user_inputs = [age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]
-    
-    # Execute SQL query to get prediction
-    conn = init_connection()  # Establish connection
-    cursor = conn.cursor()
-    query = "SELECT * FROM YourTable WHERE Age = ? AND Sex = ? AND ..."  # Construct your SQL query
-    cursor.execute(query, user_inputs)
-    result = cursor.fetchone()
-    cursor.close()
-    
-    # Process prediction
-    if result:
-        heart_diagnosis = 'The person is having heart disease' if result[0] == 1 else 'The person does not have any heart disease'
-    else:
-        heart_diagnosis = 'Prediction not available'
-    
-    st.success(heart_diagnosis)
-
-# sidebar for navigation
+# Sidebar for navigation
 with st.sidebar:
     selected = option_menu('Multiple Disease Prediction System',
                            ['Heart Disease Prediction'],
@@ -52,65 +45,49 @@ with st.sidebar:
 
 # Heart Disease Prediction Page
 if selected == 'Heart Disease Prediction':
-    # page title
+    # Page title
     st.title('Heart Disease Prediction using ML')
     
+    # Input fields
     col1, col2, col3 = st.columns(3)
+    with col1:
+        age = st.number_input('Age')
+        sex = st.selectbox('Sex', ['Male', 'Female'])
+        cp = st.number_input('Chest Pain types')
+        trestbps = st.number_input('Resting Blood Pressure')
+        chol = st.number_input('Serum Cholestoral in mg/dl')
+        fbs = st.selectbox('Fasting Blood Sugar > 120 mg/dl', ['Yes', 'No'])
+    with col2:
+        restecg = st.number_input('Resting Electrocardiographic results')
+        thalach = st.number_input('Maximum Heart Rate achieved')
+        exang = st.selectbox('Exercise Induced Angina', ['Yes', 'No'])
+        oldpeak = st.number_input('ST depression induced by exercise')
+        slope = st.number_input('Slope of the peak exercise ST segment')
+    with col3:
+        ca = st.number_input('Major vessels colored by flourosopy')
+        thal = st.selectbox('thal: 0 = normal; 1 = fixed defect; 2 = reversable defect', [0, 1, 2])
     
-    with col1:
-        age = st.text_input('Age')
-        
-    with col2:
-        sex = st.text_input('Sex')
-        
-    with col3:
-        cp = st.text_input('Chest Pain types')
-        
-    with col1:
-        trestbps = st.text_input('Resting Blood Pressure')
-        
-    with col2:
-        chol = st.text_input('Serum Cholestoral in mg/dl')
-        
-    with col3:
-        fbs = st.text_input('Fasting Blood Sugar > 120 mg/dl')
-        
-    with col1:
-        restecg = st.text_input('Resting Electrocardiographic results')
-        
-    with col2:
-        thalach = st.text_input('Maximum Heart Rate achieved')
-        
-    with col3:
-        exang = st.text_input('Exercise Induced Angina')
-        
-    with col1:
-        oldpeak = st.text_input('ST depression induced by exercise')
-        
-    with col2:
-        slope = st.text_input('Slope of the peak exercise ST segment')
-        
-    with col3:
-        ca = st.text_input('Major vessels colored by flourosopy')
-        
-    with col1:
-        thal = st.text_input('thal: 0 = normal; 1 = fixed defect; 2 = reversable defect')
-        
-    # code for Prediction
-    heart_diagnosis = ''
-    
-    # creating a button for Prediction
+    # Predict heart disease
     if st.button('Heart Disease Test Result'):
+        # Convert categorical inputs to numerical
+        sex = 1 if sex == 'Male' else 0
+        fbs = 1 if fbs == 'Yes' else 0
+        exang = 1 if exang == 'Yes' else 0
+        
+        # Get user inputs
+        user_inputs = [age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]
+        
         # Execute SQL query to get prediction
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM YourTable WHERE Age = ? AND Sex = ? AND ...", (age, sex, ...))
+        query = "SELECT * FROM YourTable WHERE Age = ? AND Sex = ? AND ..."  # Construct your SQL query
+        cursor.execute(query, user_inputs)
         result = cursor.fetchone()
         cursor.close()
         
         # Process prediction
-        if result[0] == 1:  # Assuming the prediction is in the first column
-            heart_diagnosis = 'The person is having heart disease'
+        if result:
+            heart_diagnosis = 'The person is having heart disease' if result[0] == 1 else 'The person does not have any heart disease'
         else:
-            heart_diagnosis = 'The person does not have any heart disease'
+            heart_diagnosis = 'Prediction not available'
         
-    st.success(heart_diagnosis)
+        st.success(heart_diagnosis)
