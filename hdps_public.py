@@ -22,6 +22,7 @@ def init_connection():
         + st.secrets["username"]
         + ";PWD="
         + st.secrets["password"]
+        + ";Connect Timeout=30"
     )
 
 # Function to get model prediction
