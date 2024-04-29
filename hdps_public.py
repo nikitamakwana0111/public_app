@@ -11,39 +11,37 @@ import pyodbc
 from streamlit_option_menu import option_menu
 
 
-# Initialize connection.
-# Uses st.cache_resource to only run once.
-@st.cache_resource
-def init_connection():
-    return pyodbc.connect(
-        "DRIVER={ODBC Driver 17 for SQL Server};SERVER="
-        + st.secrets["server"]
-        + ";DATABASE="
-        + st.secrets["database"]
-        + ";UID="
-        + st.secrets["username"]
-        + ";PWD="
-        + st.secrets["password"]
-    )
+# Function to get model prediction
+def predict_heart_disease(features):
+    # Load the model
+    heart_disease_model = pickle.load(open('heart_disease_model.sav', 'rb'))
+    # Assuming features is a list or array
+    features = np.array(features).reshape(1, -1)  # Reshape features for prediction
+    prediction = heart_disease_model.predict(features)
+    return prediction
 
-conn = init_connection()
+# Sidebar and input fields...
 
-# Perform query.
-# Uses st.cache_data to only rerun when the query changes or after 10 min.
-@st.cache_data(ttl=600)
-def run_query(query):
-    with conn.cursor() as cur:
-        cur.execute(query)
-        return cur.fetchall()
-
-rows = run_query("SELECT * from Heart;")
-
-# Print results.
-for row in rows:
-    st.write(f"{row[0]} has a :{row[1]}:")
+# Predict heart disease
+if st.button('Heart Disease Test Result'):
+    # Get user inputs
+    user_inputs = [age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]
     
-# loading the saved models
-heart_disease_model = pickle.load(open('heart_disease_model.sav', 'rb'))
+    # Execute SQL query to get prediction
+    conn = init_connection()  # Establish connection
+    cursor = conn.cursor()
+    query = "SELECT * FROM YourTable WHERE Age = ? AND Sex = ? AND ..."  # Construct your SQL query
+    cursor.execute(query, user_inputs)
+    result = cursor.fetchone()
+    cursor.close()
+    
+    # Process prediction
+    if result:
+        heart_diagnosis = 'The person is having heart disease' if result[0] == 1 else 'The person does not have any heart disease'
+    else:
+        heart_diagnosis = 'Prediction not available'
+    
+    st.success(heart_diagnosis)
 
 # sidebar for navigation
 with st.sidebar:
