@@ -69,17 +69,14 @@ if selected == 'Heart Disease Prediction':
     
     # Predict heart disease
     if st.button('Heart Disease Test Result'):
-        # Convert categorical inputs to numerical
-        sex = 1 if sex == 'Male' else 0
-        fbs = 1 if fbs == 'Yes' else 0
-        exang = 1 if exang == 'Yes' else 0
+     
         
         # Get user inputs
         user_inputs = [age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]
         
         # Execute SQL query to get prediction
         cursor = conn.cursor()
-        query = "SELECT * FROM YourTable WHERE Age = ? AND Sex = ? AND ..."  # Construct your SQL query
+        query = "SELECT * FROM Heart  # Construct your SQL query
         cursor.execute(query, user_inputs)
         result = cursor.fetchone()
         cursor.close()
