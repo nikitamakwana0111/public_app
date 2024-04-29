@@ -15,7 +15,7 @@ db_server = st.secrets["server"]
 db_database = st.secrets["database"]
 
 
-conn = pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database}')
+conn = pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={db_server};DATABASE={db_database}')
 
 # loading the saved models
 heart_disease_model = pickle.load(open('heart_disease_model.sav', 'rb'))
